@@ -1,8 +1,19 @@
 # 🌐 Atlas4D Base
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://postgresql.org) [![PostGIS](https://img.shields.io/badge/PostGIS-3.4-green)](https://postgis.net) [![TimescaleDB](https://img.shields.io/badge/TimescaleDB-latest-orange)](https://timescale.com) [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](docker-compose.yml)
+
 **Open 4D Spatiotemporal AI Platform built on PostgreSQL**
 
 Atlas4D Base is the **open-core** of the larger Atlas4D platform. This repo contains a minimal but fully working 4D stack - database, core services, and observability. The full Atlas4D platform adds extra domain modules (radar, drones, telco network analytics, etc.).
+
+## 👥 Who Is This For?
+
+- **Data Engineers** building real-time spatiotemporal pipelines
+- **GIS/Geo Developers** needing time-series + vector search in one DB
+- **Telecom Teams** monitoring network infrastructure
+- **Smart City Projects** analyzing mobility and urban data
+- **Research Labs** working with 4D trajectory data
+
 
 ## ✨ What Makes Atlas4D Different
 
@@ -30,6 +41,8 @@ docker compose up -d
 ```
 
 **Time to first map: ~5 minutes**
+
+![Demo Map](docs/quickstart/img/demo_burgas_map.png)
 
 ## 🧱 Modular by Design
 
