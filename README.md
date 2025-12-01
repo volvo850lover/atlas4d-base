@@ -233,3 +233,27 @@ See [NLQ Usage Guide](docs/api/NLQ_USAGE.md) for full examples.
 | **API** | http://localhost:8090/api/observations |
 | **Health** | http://localhost:8090/health |
 | **Stats** | http://localhost:8090/api/stats |
+
+---
+
+## 👩‍💻 For Developers
+
+New to Atlas4D Base? Start here:
+
+- **[Developer Onboarding](docs/DEVELOPER_ONBOARDING.md)** - Architecture, first 10 minutes, common tasks
+- **[Contributing Guide](CONTRIBUTING.md)** - How to submit PRs, code style, testing
+
+### Quick Dev Commands
+```bash
+# Start stack
+docker compose up -d
+
+# View logs
+docker compose logs -f api-gateway
+
+# Connect to database
+docker compose exec postgres psql -U atlas4d_app -d atlas4d
+
+# Rebuild after changes
+docker compose build api-gateway && docker compose up -d api-gateway
+```
