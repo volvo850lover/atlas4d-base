@@ -189,7 +189,7 @@ This is **Atlas4D Base** - the open-source foundation and reference implementati
 - **Advanced forecasting** (multi-source risk scoring, LSTM models)
 - **SLA-grade support**, sizing and deployment guidance
 
-[Contact us](mailto:cris@digicom.bg) for enterprise inquiries.
+[Contact us](mailto:office@atlas4d.tech) for enterprise inquiries.
 
 ## 📄 License
 
