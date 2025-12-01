@@ -2,7 +2,7 @@
 
 **Open 4D Spatiotemporal AI Platform built on PostgreSQL**
 
-Atlas4D is a ready-to-run platform for real-time spatiotemporal intelligence, combining PostGIS, TimescaleDB, H3 hexagonal indexing, and pgvector for unified geospatial-temporal-vector analytics.
+Atlas4D Base is the **open-core** of the larger Atlas4D platform. This repo contains a minimal but fully working 4D stack - database, core services, and observability. The full Atlas4D platform adds extra domain modules (radar, drones, telco network analytics, etc.).
 
 ## ✨ What Makes Atlas4D Different
 
@@ -26,10 +26,19 @@ cd atlas4d-base
 docker compose up -d
 
 # Open the map UI (port may vary, see docs/quickstart/QUICK_START.md)
-open http://localhost:8080/ui/
+# Open in your browser: http://localhost:8080/ui/
 ```
 
 **Time to first map: ~5 minutes**
+
+## 🧱 Modular by Design
+
+Atlas4D is built as a set of independent services around a shared 4D database core.
+
+- **Add new domain modules** without touching the core DB
+- **Mix & match services** (anomaly only, or anomaly + threat + NLQ)
+- **Safe to extend:** everything talks HTTP/JSON or SQL
+- **Scalable:** suitable for single-node labs and multi-service production clusters
 
 ## 🏗️ Architecture
 ```
@@ -78,12 +87,46 @@ open http://localhost:8080/ui/
 - **Grafana** - Dashboards and visualization
 - **Alert Rules** - Pre-configured for ML pipeline and Redis
 
-## 🎯 Use Cases
+## 📊 Project Status
 
-- **Telecom Network Monitoring** - Detect anomalies across network infrastructure
-- **Smart City** - Real-time urban mobility and safety analytics
-- **Fleet Management** - Trajectory analysis and threat zones
-- **Critical Infrastructure** - Spatiotemporal threat assessment
+| Aspect | Status |
+|--------|--------|
+| **Maturity** | Tech Preview / Alpha |
+| **Scope** | Core 4D database, reference AI services, observability |
+| **Not included** | Domain-specific modules (radar, ADS-B, vision GPU, NetGuardian) - see Full Edition |
+
+## 🎯 Use Cases & Example Modules
+
+Atlas4D Base ships with the core 4D engine and generic AI services. On top of this core, domain-specific modules can be added:
+
+### Telecom & Networks
+- GPON / fiber anomaly detection
+- Capacity & congestion forecasting
+- Network Guardian-style risk scoring for critical infrastructure
+
+### Smart City & Mobility
+- Traffic & fleet analytics via trajectories
+- Movement anomalies (speed spikes, unusual routes)
+- High-risk zones (stadiums, events, gatherings)
+
+### Airspace & Airports
+- Trajectory monitoring for aircraft and drones
+- Conflict zones / separation violation detection
+- Safety dashboards for control rooms
+
+### Wildfires & Agriculture
+- Fire risk mapping (wind, temperature, drought, historical fires)
+- Crop yield forecasting on H3 grid
+- Early warning for extreme weather events
+
+### Defense & Security
+- Multi-sensor drone detection (radar + vision + RF)
+- Spatiotemporal analysis of suspicious objects and vehicles
+- Pattern-of-life analysis on 4D trajectories
+
+### Predictive Analytics
+- Time-series forecasting
+- Vector-based similarity: "find trajectories similar to this incident"
 
 ## 📚 Documentation
 
@@ -122,12 +165,14 @@ ENABLE_NLQ=true
 
 This is **Atlas4D Base** - the open-source foundation and reference implementation.
 
-**Atlas4D Full Edition** includes additional enterprise features:
-- Advanced ML models (LSTM threat prediction, extended feature set)
-- Network Guardian module
-- Radar/ADS-B integration
-- GPU-accelerated vision processing
-- Production deployment support
+**Atlas4D Full Edition** includes additional enterprise modules built on top of this base:
+
+- **Radar & ADS-B fusion** for airspace monitoring
+- **Drone & low-altitude threat detection**
+- **Telco Network Guardian** (fiber/ISP network analytics)
+- **GPU-accelerated vision** and video analytics
+- **Advanced forecasting** (multi-source risk scoring, LSTM models)
+- **SLA-grade support**, sizing and deployment guidance
 
 [Contact us](mailto:cris@digicom.bg) for enterprise inquiries.
 
