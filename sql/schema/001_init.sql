@@ -1,23 +1,20 @@
 -- Atlas4D Base Schema Initialization
--- Version: 1.0.0
+-- Version: 1.0.1
 
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Note: H3 extension requires separate installation
--- CREATE EXTENSION IF NOT EXISTS h3;
-
 -- Schema
 CREATE SCHEMA IF NOT EXISTS atlas4d;
 
 -- Core observations table
 CREATE TABLE IF NOT EXISTS atlas4d.observations_core (
-    id              BIGSERIAL PRIMARY KEY,
+    id              BIGSERIAL,
     t               TIMESTAMPTZ NOT NULL,
     geom            GEOMETRY(Point, 4326),
-    source_type     VARCHAR(50),
+    source_type     TEXT,
     track_id        UUID,
     entity_id       UUID,
     lat             DOUBLE PRECISION,
@@ -25,7 +22,8 @@ CREATE TABLE IF NOT EXISTS atlas4d.observations_core (
     altitude_m      DOUBLE PRECISION,
     speed_ms        DOUBLE PRECISION,
     heading_deg     DOUBLE PRECISION,
-    metadata        JSONB DEFAULT '{}'
+    metadata        JSONB DEFAULT '{}',
+    PRIMARY KEY (id, t)  -- Include t for TimescaleDB partitioning
 );
 
 -- Convert to hypertable
@@ -45,7 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_obs_geom
 CREATE TABLE IF NOT EXISTS atlas4d.trajectory_embeddings (
     id              SERIAL PRIMARY KEY,
     track_id        UUID NOT NULL,
-    source_type     VARCHAR(50),
+    source_type     TEXT,
     start_time      TIMESTAMPTZ,
     end_time        TIMESTAMPTZ,
     point_count     INTEGER,
@@ -58,7 +56,7 @@ CREATE TABLE IF NOT EXISTS atlas4d.trajectory_embeddings (
 CREATE TABLE IF NOT EXISTS atlas4d.anomalies (
     id              SERIAL PRIMARY KEY,
     observation_id  BIGINT,
-    anomaly_type    VARCHAR(50),
+    anomaly_type    TEXT,
     severity        INTEGER CHECK (severity BETWEEN 1 AND 5),
     score           DOUBLE PRECISION,
     detected_at     TIMESTAMPTZ DEFAULT NOW(),

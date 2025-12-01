@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas4D Base - Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        
+        #header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #header h1 { font-size: 1.5rem; }
+        
+        #stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; }
+        .stat-label { opacity: 0.8; }
+        
+        #map { height: calc(100vh - 120px); }
+        
+        #controls {
+            background: #f5f5f5;
+            padding: 0.5rem 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        button:hover { background: #5a6fd6; }
+        
+        select, input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        #status {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .leaflet-popup-content { min-width: 200px; }
+        .popup-title { font-weight: bold; margin-bottom: 0.5rem; }
+        .popup-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
+        .popup-label { color: #666; }
+        
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .legend h4 { margin-bottom: 8px; }
+        .legend-item { display: flex; align-items: center; margin: 4px 0; }
+        .legend-color { width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>🌐 Atlas4D Base</h1>
+        <div id="stats">
+            <div class="stat">
+                <div class="stat-value" id="obs-count">-</div>
+                <div class="stat-label">Observations</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="anom-count">-</div>
+                <div class="stat-label">Anomalies</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="sources-count">-</div>
+                <div class="stat-label">Sources</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="controls">
+        <label>Hours: 
+            <select id="hours">
+                <option value="1">1h</option>
+                <option value="6">6h</option>
+                <option value="24" selected>24h</option>
+                <option value="168">7 days</option>
+            </select>
+        </label>
+        <button onclick="loadData()">🔄 Refresh</button>
+        <button onclick="loadDemoData()">📥 Load Demo</button>
+        <span id="status">Ready</span>
+    </div>
+    
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const API_BASE = '';  // Same origin
+        
+        // Initialize map centered on Burgas
+        const map = L.map('map').setView([42.5, 27.46], 11);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Layer groups
+        const observationsLayer = L.layerGroup().addTo(map);
+        const anomaliesLayer = L.layerGroup().addTo(map);
+        
+        // Color by source type
+        const sourceColors = {
+            'vehicle': '#3498db',
+            'sensor': '#2ecc71',
+            'camera': '#e74c3c',
+            'manual': '#9b59b6',
+            'default': '#95a5a6'
+        };
+        
+        // Add legend
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <h4>Sources</h4>
+                <div class="legend-item"><span class="legend-color" style="background:#3498db"></span> Vehicle</div>
+                <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span> Sensor</div>
+                <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span> Camera</div>
+                <div class="legend-item"><span class="legend-color" style="background:#9b59b6"></span> Manual</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f39c12; border: 2px solid #c0392b"></span> Anomaly</div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+        
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+        
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/stats`);
+                if (!res.ok) throw new Error('Stats unavailable');
+                const data = await res.json();
+                
+                document.getElementById('obs-count').textContent = data.total_observations.toLocaleString();
+                document.getElementById('anom-count').textContent = data.total_anomalies.toLocaleString();
+                document.getElementById('sources-count').textContent = Object.keys(data.sources).length;
+            } catch (e) {
+                console.error('Stats error:', e);
+            }
+        }
+        
+        async function loadData() {
+            const hours = document.getElementById('hours').value;
+            setStatus('Loading...');
+            
+            try {
+                // Load observations
+                const obsRes = await fetch(`${API_BASE}/api/geojson/observations?hours=${hours}&limit=500`);
+                if (!obsRes.ok) throw new Error('Failed to load observations');
+                const obsData = await obsRes.json();
+                
+                observationsLayer.clearLayers();
+                
+                obsData.features.forEach(feature => {
+                    const coords = feature.geometry.coordinates;
+                    const props = feature.properties;
+                    const color = sourceColors[props.source_type] || sourceColors.default;
+                    
+                    const marker = L.circleMarker([coords[1], coords[0]], {
+                        radius: 6,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                    
+                    marker.bindPopup(`
+                        <div class="popup-title">Observation #${props.id}</div>
+                        <div class="popup-row"><span class="popup-label">Type:</span> ${props.source_type || 'N/A'}</div>
+                        <div class="popup-row"><span class="popup-label">Time:</span> ${props.time ? new Date(props.time).toLocaleString() : 'N/A'}</div>
+                        <div class="popup-row"><span class="popup-label">Speed:</span> ${props.speed_ms ? props.speed_ms.toFixed(1) + ' m/s' : 'N/A'}</div>
+                    `);
+                    
+                    observationsLayer.addLayer(marker);
+                });
+                
+                // Load anomalies
+                const anomRes = await fetch(`${API_BASE}/api/anomalies?hours=${hours}&limit=100`);
+                if (anomRes.ok) {
+                    const anomData = await anomRes.json();
+                    
+                    anomaliesLayer.clearLayers();
+                    
+                    anomData.forEach(anom => {
+                        if (anom.lat && anom.lon) {
+                            const marker = L.circleMarker([anom.lat, anom.lon], {
+                                radius: 10,
+                                fillColor: '#f39c12',
+                                color: '#c0392b',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.9
+                            });
+                            
+                            marker.bindPopup(`
+                                <div class="popup-title">⚠️ Anomaly</div>
+                                <div class="popup-row"><span class="popup-label">Type:</span> ${anom.anomaly_type}</div>
+                                <div class="popup-row"><span class="popup-label">Severity:</span> ${anom.severity}/5</div>
+                                <div class="popup-row"><span class="popup-label">Score:</span> ${(anom.score * 100).toFixed(0)}%</div>
+                            `);
+                            
+                            anomaliesLayer.addLayer(marker);
+                        }
+                    });
+                }
+                
+                setStatus(`Loaded ${obsData.features.length} observations`);
+                await loadStats();
+                
+            } catch (e) {
+                console.error('Load error:', e);
+                setStatus('Error: ' + e.message);
+            }
+        }
+        
+        async function loadDemoData() {
+            setStatus('Loading demo data...');
+            try {
+                // This would typically call a seed endpoint
+                // For now, just refresh after manual seed
+                alert('Run this command to load demo data:\n\ndocker compose exec postgres psql -U atlas4d_app -d atlas4d -f /docker-entrypoint-initdb.d/seed/demo_burgas.sql\n\nThen click Refresh.');
+            } catch (e) {
+                setStatus('Error: ' + e.message);
+            }
+        }
+        
+        // Initial load
+        loadData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
