@@ -38,6 +38,7 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         button {
@@ -51,6 +52,7 @@
         }
         
         button:hover { background: #5a6fd6; }
+        button.active { background: #764ba2; }
         
         select, input {
             padding: 0.5rem;
@@ -64,10 +66,12 @@
             color: #666;
         }
         
-        .leaflet-popup-content { min-width: 200px; }
-        .popup-title { font-weight: bold; margin-bottom: 0.5rem; }
+        .leaflet-popup-content { min-width: 220px; }
+        .popup-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1em; }
         .popup-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
         .popup-label { color: #666; }
+        .popup-value { font-weight: 500; }
+        .popup-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee; }
         
         .legend {
             background: white;
@@ -75,9 +79,11 @@
             border-radius: 4px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-        .legend h4 { margin-bottom: 8px; }
-        .legend-item { display: flex; align-items: center; margin: 4px 0; }
-        .legend-color { width: 16px; height: 16px; border-radius: 50%; margin-right: 8px; }
+        .legend h4 { margin-bottom: 8px; font-size: 0.9em; }
+        .legend-item { display: flex; align-items: center; margin: 4px 0; font-size: 0.85em; }
+        .legend-color { width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; border: 1px solid #ccc; }
+        
+        .scenario-label { font-weight: 500; color: #333; }
     </style>
 </head>
 <body>
@@ -100,6 +106,13 @@
     </div>
     
     <div id="controls">
+        <span class="scenario-label">Scenario:</span>
+        <select id="scenario" onchange="changeScenario()">
+            <option value="all">All Data</option>
+            <option value="mobility">🚗 Mobility</option>
+            <option value="telecom">📡 Telecom</option>
+        </select>
+        
         <label>Hours: 
             <select id="hours">
                 <option value="1">1h</option>
@@ -109,7 +122,6 @@
             </select>
         </label>
         <button onclick="loadData()">🔄 Refresh</button>
-        <button onclick="loadDemoData()">📥 Load Demo</button>
         <span id="status">Ready</span>
     </div>
     
@@ -117,7 +129,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_BASE = '';  // Same origin
+        const API_BASE = '';
+        let currentScenario = 'all';
         
         // Initialize map centered on Burgas
         const map = L.map('map').setView([42.5, 27.46], 11);
@@ -130,30 +143,138 @@
         const observationsLayer = L.layerGroup().addTo(map);
         const anomaliesLayer = L.layerGroup().addTo(map);
         
-        // Color by source type
-        const sourceColors = {
+        // Color schemes for different scenarios
+        const mobilityColors = {
             'vehicle': '#3498db',
             'sensor': '#2ecc71',
             'camera': '#e74c3c',
-            'manual': '#9b59b6',
-            'default': '#95a5a6'
+            'manual': '#9b59b6'
         };
         
-        // Add legend
-        const legend = L.control({ position: 'bottomright' });
-        legend.onAdd = function() {
-            const div = L.DomUtil.create('div', 'legend');
-            div.innerHTML = `
-                <h4>Sources</h4>
-                <div class="legend-item"><span class="legend-color" style="background:#3498db"></span> Vehicle</div>
-                <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span> Sensor</div>
-                <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span> Camera</div>
-                <div class="legend-item"><span class="legend-color" style="background:#9b59b6"></span> Manual</div>
-                <div class="legend-item"><span class="legend-color" style="background:#f39c12; border: 2px solid #c0392b"></span> Anomaly</div>
-            `;
-            return div;
+        const telecomColors = {
+            'olt': '#e74c3c',
+            'switch': '#f39c12',
+            'cpe': '#3498db',
+            'traffic_metric': '#2ecc71'
         };
-        legend.addTo(map);
+        
+        const defaultColor = '#95a5a6';
+        
+        // Source type filters
+        const mobilityTypes = ['vehicle', 'sensor', 'camera', 'manual'];
+        const telecomTypes = ['olt', 'switch', 'cpe', 'traffic_metric'];
+        
+        // Legend control
+        let legendControl = null;
+        
+        function updateLegend() {
+            if (legendControl) {
+                map.removeControl(legendControl);
+            }
+            
+            legendControl = L.control({ position: 'bottomright' });
+            legendControl.onAdd = function() {
+                const div = L.DomUtil.create('div', 'legend');
+                
+                if (currentScenario === 'mobility') {
+                    div.innerHTML = `
+                        <h4>🚗 Mobility</h4>
+                        <div class="legend-item"><span class="legend-color" style="background:#3498db"></span> Vehicle</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span> Sensor</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span> Camera</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#9b59b6"></span> Manual</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#f39c12; border: 2px solid #c0392b"></span> Anomaly</div>
+                    `;
+                } else if (currentScenario === 'telecom') {
+                    div.innerHTML = `
+                        <h4>📡 Telecom</h4>
+                        <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span> OLT</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#f39c12"></span> Switch</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#3498db"></span> CPE</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span> Traffic</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#f39c12; border: 2px solid #c0392b"></span> Anomaly</div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <h4>All Sources</h4>
+                        <div class="legend-item"><span class="legend-color" style="background:#3498db"></span> Vehicle/CPE</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span> Sensor/Traffic</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span> Camera/OLT</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#f39c12"></span> Switch</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#f39c12; border: 2px solid #c0392b"></span> Anomaly</div>
+                    `;
+                }
+                return div;
+            };
+            legendControl.addTo(map);
+        }
+        
+        function getColor(sourceType) {
+            if (currentScenario === 'mobility') {
+                return mobilityColors[sourceType] || defaultColor;
+            } else if (currentScenario === 'telecom') {
+                return telecomColors[sourceType] || defaultColor;
+            } else {
+                return mobilityColors[sourceType] || telecomColors[sourceType] || defaultColor;
+            }
+        }
+        
+        function getMarkerSize(sourceType) {
+            // Larger markers for infrastructure nodes
+            if (['olt', 'switch'].includes(sourceType)) return 10;
+            if (sourceType === 'cpe') return 5;
+            return 6;
+        }
+        
+        function shouldShowType(sourceType) {
+            if (currentScenario === 'all') return true;
+            if (currentScenario === 'mobility') return mobilityTypes.includes(sourceType);
+            if (currentScenario === 'telecom') return telecomTypes.includes(sourceType);
+            return true;
+        }
+        
+        function formatMetadata(props) {
+            if (!props.metadata) return '';
+            try {
+                const meta = typeof props.metadata === 'string' ? JSON.parse(props.metadata) : props.metadata;
+                let html = '<div class="popup-section">';
+                
+                // Telecom-specific fields
+                if (meta.name) html += `<div class="popup-row"><span class="popup-label">Name:</span> <span class="popup-value">${meta.name}</span></div>`;
+                if (meta.capacity_gbps) html += `<div class="popup-row"><span class="popup-label">Capacity:</span> <span class="popup-value">${meta.capacity_gbps} Gbps</span></div>`;
+                if (meta.active_ports) html += `<div class="popup-row"><span class="popup-label">Active Ports:</span> <span class="popup-value">${meta.active_ports}</span></div>`;
+                if (meta.rx_power_dbm) html += `<div class="popup-row"><span class="popup-label">RX Power:</span> <span class="popup-value">${meta.rx_power_dbm} dBm</span></div>`;
+                if (meta.bandwidth_mbps) html += `<div class="popup-row"><span class="popup-label">Bandwidth:</span> <span class="popup-value">${meta.bandwidth_mbps} Mbps</span></div>`;
+                if (meta.throughput_gbps) html += `<div class="popup-row"><span class="popup-label">Throughput:</span> <span class="popup-value">${meta.throughput_gbps} Gbps</span></div>`;
+                if (meta.latency_ms) html += `<div class="popup-row"><span class="popup-label">Latency:</span> <span class="popup-value">${meta.latency_ms} ms</span></div>`;
+                if (meta.packet_loss_pct) html += `<div class="popup-row"><span class="popup-label">Packet Loss:</span> <span class="popup-value">${(meta.packet_loss_pct * 100).toFixed(2)}%</span></div>`;
+                
+                html += '</div>';
+                return html;
+            } catch (e) {
+                return '';
+            }
+        }
+        
+        function getTypeIcon(sourceType) {
+            const icons = {
+                'olt': '🏢',
+                'switch': '🔀',
+                'cpe': '📦',
+                'traffic_metric': '📊',
+                'vehicle': '🚗',
+                'sensor': '📡',
+                'camera': '📷',
+                'manual': '✏️'
+            };
+            return icons[sourceType] || '📍';
+        }
+        
+        function changeScenario() {
+            currentScenario = document.getElementById('scenario').value;
+            updateLegend();
+            loadData();
+        }
         
         function setStatus(msg) {
             document.getElementById('status').textContent = msg;
@@ -179,19 +300,25 @@
             
             try {
                 // Load observations
-                const obsRes = await fetch(`${API_BASE}/api/geojson/observations?hours=${hours}&limit=500`);
+                const obsRes = await fetch(`${API_BASE}/api/geojson/observations?hours=${hours}&limit=1000`);
                 if (!obsRes.ok) throw new Error('Failed to load observations');
                 const obsData = await obsRes.json();
                 
                 observationsLayer.clearLayers();
+                let displayedCount = 0;
                 
                 obsData.features.forEach(feature => {
                     const coords = feature.geometry.coordinates;
                     const props = feature.properties;
-                    const color = sourceColors[props.source_type] || sourceColors.default;
+                    
+                    // Filter by scenario
+                    if (!shouldShowType(props.source_type)) return;
+                    
+                    const color = getColor(props.source_type);
+                    const radius = getMarkerSize(props.source_type);
                     
                     const marker = L.circleMarker([coords[1], coords[0]], {
-                        radius: 6,
+                        radius: radius,
                         fillColor: color,
                         color: '#fff',
                         weight: 1,
@@ -199,14 +326,17 @@
                         fillOpacity: 0.8
                     });
                     
+                    const icon = getTypeIcon(props.source_type);
                     marker.bindPopup(`
-                        <div class="popup-title">Observation #${props.id}</div>
-                        <div class="popup-row"><span class="popup-label">Type:</span> ${props.source_type || 'N/A'}</div>
-                        <div class="popup-row"><span class="popup-label">Time:</span> ${props.time ? new Date(props.time).toLocaleString() : 'N/A'}</div>
-                        <div class="popup-row"><span class="popup-label">Speed:</span> ${props.speed_ms ? props.speed_ms.toFixed(1) + ' m/s' : 'N/A'}</div>
+                        <div class="popup-title">${icon} ${props.source_type?.toUpperCase() || 'Unknown'}</div>
+                        <div class="popup-row"><span class="popup-label">ID:</span> <span class="popup-value">#${props.id}</span></div>
+                        <div class="popup-row"><span class="popup-label">Time:</span> <span class="popup-value">${props.time ? new Date(props.time).toLocaleString() : 'N/A'}</span></div>
+                        ${props.speed_ms ? `<div class="popup-row"><span class="popup-label">Speed:</span> <span class="popup-value">${props.speed_ms.toFixed(1)} m/s</span></div>` : ''}
+                        ${formatMetadata(props)}
                     `);
                     
                     observationsLayer.addLayer(marker);
+                    displayedCount++;
                 });
                 
                 // Load anomalies
@@ -218,8 +348,12 @@
                     
                     anomData.forEach(anom => {
                         if (anom.lat && anom.lon) {
+                            // Filter by scenario if needed
+                            if (currentScenario === 'telecom' && !anom.metadata?.network_demo) return;
+                            if (currentScenario === 'mobility' && anom.metadata?.network_demo) return;
+                            
                             const marker = L.circleMarker([anom.lat, anom.lon], {
-                                radius: 10,
+                                radius: 12,
                                 fillColor: '#f39c12',
                                 color: '#c0392b',
                                 weight: 2,
@@ -228,10 +362,11 @@
                             });
                             
                             marker.bindPopup(`
-                                <div class="popup-title">⚠️ Anomaly</div>
-                                <div class="popup-row"><span class="popup-label">Type:</span> ${anom.anomaly_type}</div>
-                                <div class="popup-row"><span class="popup-label">Severity:</span> ${anom.severity}/5</div>
-                                <div class="popup-row"><span class="popup-label">Score:</span> ${(anom.score * 100).toFixed(0)}%</div>
+                                <div class="popup-title">⚠️ ${anom.anomaly_type?.replace('_', ' ').toUpperCase()}</div>
+                                <div class="popup-row"><span class="popup-label">Severity:</span> <span class="popup-value">${anom.severity}/5</span></div>
+                                <div class="popup-row"><span class="popup-label">Score:</span> <span class="popup-value">${(anom.score * 100).toFixed(0)}%</span></div>
+                                <div class="popup-row"><span class="popup-label">Detected:</span> <span class="popup-value">${new Date(anom.detected_at).toLocaleString()}</span></div>
+                                ${anom.source_type ? `<div class="popup-row"><span class="popup-label">Source:</span> <span class="popup-value">${anom.source_type}</span></div>` : ''}
                             `);
                             
                             anomaliesLayer.addLayer(marker);
@@ -239,7 +374,7 @@
                     });
                 }
                 
-                setStatus(`Loaded ${obsData.features.length} observations`);
+                setStatus(`Loaded ${displayedCount} observations (${currentScenario})`);
                 await loadStats();
                 
             } catch (e) {
@@ -248,18 +383,8 @@
             }
         }
         
-        async function loadDemoData() {
-            setStatus('Loading demo data...');
-            try {
-                // This would typically call a seed endpoint
-                // For now, just refresh after manual seed
-                alert('Run this command to load demo data:\n\ndocker compose exec postgres psql -U atlas4d_app -d atlas4d -f /docker-entrypoint-initdb.d/seed/demo_burgas.sql\n\nThen click Refresh.');
-            } catch (e) {
-                setStatus('Error: ' + e.message);
-            }
-        }
-        
-        // Initial load
+        // Initial setup
+        updateLegend();
         loadData();
         
         // Auto-refresh every 30 seconds

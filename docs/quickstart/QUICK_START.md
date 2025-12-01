@@ -166,3 +166,47 @@ If you have another service on these ports, edit `docker-compose.yml`:
 ---
 
 **Setup time: < 5 minutes** | **Questions?** Open an issue on [GitHub](https://github.com/crisbez/atlas4d-base/issues)
+
+---
+
+## Demo 2: Telecom Network Scenario
+
+Atlas4D Base also supports network infrastructure monitoring. Load the telecom demo:
+```bash
+docker compose exec postgres psql -U atlas4d_app -d atlas4d \
+  -f /docker-entrypoint-initdb.d/seed/demo_telecom.sql
+```
+
+Expected output:
+```
+NOTICE:  Telecom demo loaded: 78 network observations, 6 anomalies
+NOTICE:  Node types: cpe, olt, switch, traffic_metric
+```
+
+### Telecom Data Types
+
+| Type | Count | Description |
+|------|-------|-------------|
+| `olt` | 3 | Optical Line Terminals (central offices) |
+| `switch` | 5 | Distribution switches |
+| `cpe` | 20 | Customer Premise Equipment |
+| `traffic_metric` | 50 | Bandwidth/latency measurements |
+
+### Query Telecom Data
+```bash
+# Get network nodes
+curl -s "http://localhost:8090/api/observations?limit=10" | jq '.[] | select(.source_type == "olt" or .source_type == "switch" or .source_type == "cpe")'
+
+# Get all source types
+curl -s "http://localhost:8090/api/stats" | jq '.sources'
+```
+
+### Network Anomaly Types
+
+- `high_latency` - Network latency above threshold
+- `packet_loss` - Significant packet loss detected
+- `link_down` - Network link failure
+- `congestion` - Bandwidth congestion
+- `power_warning` - CPE optical power issues
+
+This demonstrates Atlas4D's versatility - the same 4D engine handles both mobility tracking and network infrastructure monitoring.
