@@ -193,6 +193,20 @@ This is **Atlas4D Base** - the open-source foundation and reference implementati
 
 [Contact us](mailto:office@atlas4d.tech) for enterprise inquiries.
 
+
+
+## 🤝 Contributing
+
+We welcome contributions! See our [Contributing Guide](docs/community/CONTRIBUTOR_PATHS.md).
+
+**Ways to contribute:**
+- 🐛 Report bugs
+- 📝 Improve documentation
+- 💻 Submit code
+- 💡 Propose new modules
+
+Check out our [Good First Issues](docs/community/GOOD_FIRST_ISSUES.md) for beginner-friendly tasks.
+
 ## 📄 License
 
 Apache 2.0 - See [LICENSE](LICENSE) for details.
