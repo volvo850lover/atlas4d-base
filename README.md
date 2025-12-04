@@ -157,6 +157,20 @@ Atlas4D Base ships with the core 4D engine and generic AI services. On top of th
 - Time-series forecasting
 - Vector-based similarity: "find trajectories similar to this incident"
 
+## 🔒 Security & Hardening
+
+Atlas4D Base ships with a **developer-friendly demo configuration**.  
+It is not production-ready out of the box.
+
+Before exposing a deployment to the internet you should:
+
+- change all default passwords and secrets,
+- restrict exposed ports and put Atlas4D behind a reverse proxy (HTTPS),
+- use a dedicated DB user with least privilege,
+- protect observability (Grafana/Prometheus) and internal APIs.
+
+See [`docs/SECURITY.md`](docs/SECURITY.md) for a detailed hardening guide.
+
 ## 📚 Documentation
 
 - [Quick Start Guide](docs/quickstart/QUICK_START.md)
