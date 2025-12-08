@@ -38,18 +38,25 @@ Atlas4D Base is the **open-core** of the larger Atlas4D platform. This repo cont
 
 ## 🚀 Quick Start
 ```bash
-# Clone the repository
+# Clone and start
 git clone https://github.com/crisbez/atlas4d-base.git
 cd atlas4d-base
-
-# Start the platform
-docker compose up -d
-
-# Open the map UI (port may vary, see docs/quickstart/QUICK_START.md)
-# Open in your browser: http://185.18.56.13:8091
+make demo
 ```
 
-**Time to first map: ~5 minutes**
+Or manually:
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+**⏱️ Time to first map: ~3 minutes**
+
+| Service | URL |
+|---------|-----|
+| Map UI | http://localhost:8091 |
+| API Health | http://localhost:8090/health |
+| API Stats | http://localhost:8090/api/stats |
 
 ![Demo Map](docs/quickstart/img/demo_burgas_map.png)
 
